@@ -210,6 +210,8 @@ class ThrivePlugin implements Plugin<Project> {
             target = new File(thriveDirectories.metadata, "version.txt")
         }
 
+        project.build.dependsOn project.writeVersion
+
         log.info("Creating 'writeCapabilities' task in project ${fullName(project)}")
         project.tasks.create(
             name: "writeCapabilities",
