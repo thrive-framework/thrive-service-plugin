@@ -14,7 +14,6 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.util.GradleVersion
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
-import org.unbrokendome.gradle.plugins.gitversion.GitVersionPlugin
 
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -37,8 +36,6 @@ class ThrivePlugin implements Plugin<Project> {
         configureJavaLibrary(target)
 
         target.afterEvaluate { project ->
-            configureVersioning(project)
-
             configureRepositories(project)
 
             configureDirs(project)
@@ -82,70 +79,6 @@ class ThrivePlugin implements Plugin<Project> {
 
     private void configureJavaLibrary(Project project){
         applyPluginIfNeeded(project, JavaLibraryPlugin)
-    }
-
-    private void configureVersioning(Project project){
-        //todo extract to different plugin
-        if (extension.useGitBasedVersioning.get()){
-
-            applyPluginIfNeeded(project, GitVersionPlugin)
-
-            def semverRegex = /(\d+[.]\d+[.]\d+)/
-            def versioningContext = [fullyDetermined: false]
-
-            //todo what happens when there is not tag at all?
-            project.gitVersion {
-                rules {
-                    before {
-                        def tag = findLatestTag(~semverRegex, true)
-                        versioningContext.tag = tag
-                        def commitsSinceTag = countCommitsSince tag
-                        versioningContext.commitsSinceTag = commitsSinceTag
-                        version = tag.matches[1]
-                        if (commitsSinceTag > 0 || branchName != "master")
-                            version.incrementMinor()
-                    }
-                    onBranch("master"){
-                        if (versioningContext.commitsSinceTag > 0) {
-                            version.prereleaseTag = "RC"
-                            project.ext {
-                                projectState = "RC"
-                            }
-                        } else {
-                            project.ext {
-                                projectState = "RELEASE"
-                            }
-                        }
-                        versioningContext.fullyDetermined = true
-                    }
-                    onBranch(~semverRegex) {
-                        def candidate = matches[1]
-                        //todo this fixates x.x.0 versions; check whether major and minor are the same and patch is bigger from tagged instead
-                        assert "$version" == "$candidate", "Current development branch should be $version, but is ${candidate}! (context: $versioningContext; tagName: ${versioningContext.tag.tagName})"
-                        version.prereleaseTag = "SNAPSHOT"
-                        project.ext {
-                            projectState = "SNAPSHOT"
-                        }
-                        versioningContext.fullyDetermined = true
-                    }
-                    after {
-                        if (!versioningContext.fullyDetermined){
-                            version.prereleaseTag = "FEATURE"
-                            version.buildMetadata = "${branchName.hashCode()}_${versioningContext.commitsSinceTag}"
-                            versioningContext.fullyDetermined = true
-                            project.ext {
-                                projectState = "FEATURE"
-                            }
-                        }
-                    }
-                }
-            }
-
-            project.version = project.gitVersion.determineVersion()
-
-            log.info "Project \"${fullName(project)}\" version: ${project.version}"
-            log.info "Project \"${fullName(project)}\" state:   ${project.projectState}"
-        }
     }
 
     private void configureRepositories(Project project){

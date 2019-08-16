@@ -1,3 +1,15 @@
+buildscript {
+    repositories {
+        maven {
+            name "jitpack"
+            url "https://jitpack.io"
+        }
+    }
+    dependencies {
+        classpath "com.github.thrive-framework:thrive-versioning-plugin:0.1.0"
+    }
+}
+
 plugins {
     id 'maven-publish'
     id 'groovy'
@@ -6,64 +18,14 @@ plugins {
     id "org.unbroken-dome.gitversion" version "0.10.0"
 }
 
+apply plugin: "com.github.thrive-versioning"
+
 ext {
     springBootVersion  = '2.1.6.RELEASE'
     gitInfoVersion     = '2.0.0'
 }
 
 group = 'com.github.thrive-framework'
-
-def semverRegex = /(\d+[.]\d+[.]\d+)/
-def versioningContext = [fullyDetermined: false]
-
-gitVersion {
-    rules {
-        before {
-            def tag = findLatestTag(~semverRegex, true)
-            versioningContext.tag = tag
-            def commitsSinceTag = countCommitsSince tag
-            versioningContext.commitsSinceTag = commitsSinceTag
-            version = tag.matches[1]
-            if (commitsSinceTag > 0 || branchName != "master")
-                version.incrementMinor()
-        }
-        onBranch("master"){
-            if (versioningContext.commitsSinceTag > 0) {
-                version.prereleaseTag = "RC"
-                project.ext {
-                    projectState = "RC"
-                }
-            } else {
-                project.ext {
-                    projectState = "RELEASE"
-                }
-            }
-            versioningContext.fullyDetermined = true
-        }
-        onBranch(~semverRegex) {
-            def candidate = matches[1]
-            //todo this fixates x.x.0 versions; check whether major and minor are the same and patch is bigger from tagged instead
-            assert "$version" == "$candidate", "Current development branch should be $version, but is ${candidate}! (context: $versioningContext; tagName: ${versioningContext.tag.tagName})"
-            version.prereleaseTag = "SNAPSHOT"
-            project.ext {
-                projectState = "SNAPSHOT"
-            }
-            versioningContext.fullyDetermined = true
-        }
-        after {
-            if (!versioningContext.fullyDetermined){
-                version.prereleaseTag = "FEATURE"
-                version.buildMetadata = "${branchName.hashCode()}_${versioningContext.commitsSinceTag}"
-                versioningContext.fullyDetermined = true
-                project.ext {
-                    projectState = "FEATURE"
-                }
-            }
-        }
-    }
-}
-
-version = gitVersion.determineVersion()
 
 repositories {
     mavenCentral()
@@ -75,7 +37,6 @@ dependencies {
     api("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
     api("com.gorylenko.gradle-git-properties:com.gorylenko.gradle-git-properties.gradle.plugin:${gitInfoVersion}")
     api("io.spring.gradle:dependency-management-plugin:1.0.8.RELEASE") //todo version to ext
-    api "gradle.plugin.org.unbroken-dome.gradle-plugins:gradle-gitversion-plugin:0.10.0" //todo version to ext
 }
 
 gradlePlugin {

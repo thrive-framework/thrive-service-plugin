@@ -10,8 +10,6 @@ class ThriveExtension {
 
     final Property<String> mainClassName
 
-    final Property<Boolean> useGitBasedVersioning
-
     final Property<Boolean> isRunnableProject
 
     ThriveExtension(Project project){
@@ -21,13 +19,11 @@ class ThriveExtension {
 
         mainClassName = project.objects.property(String)
 
-        useGitBasedVersioning = project.objects.property(Boolean)
         isRunnableProject = project.objects.property(Boolean)
         initDefaults()
     }
 
     private void initDefaults(){
-        gitBasedVersioning()
         service()
     }
 
@@ -37,10 +33,6 @@ class ThriveExtension {
 
     void library(boolean is = true){
         service(!is)
-    }
-
-    void gitBasedVersioning(boolean use = true){
-        useGitBasedVersioning.set use
     }
 
     void libraries(Closure c){
