@@ -11,6 +11,7 @@ import io.spring.gradle.dependencymanagement.DependencyManagementPlugin
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.util.GradleVersion
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
@@ -196,15 +197,28 @@ class ThrivePlugin implements Plugin<Project> {
         }
     }
 
-    private void configureProjectTasks(Project project){
-        def group = "Thrive (common)"
-
-        log.info("Creating 'writeVersion' task in project ${fullName(project)}")
+    private <T extends Task> T createTask(Project project, String name, Class<T> type, String group, String desc, Closure config){
+        log.info("Creating '$name' task in project ${fullName(project)}")
         project.tasks.create(
-            name: "writeVersion",
-            type: Echo,
-            description: "Writes project version to <buildDir>/thrive/metadata/version.txt (useful for build automation)",
-            group: group
+            [
+                name: name,
+                type: type,
+                description: desc,
+                group: group
+            ],
+            config
+        )
+    }
+
+    private void configureProjectTasks(Project project){
+        def group = "thrive (common)"
+
+        createTask(
+            project,
+            "writeVersion",
+            Echo,
+            group,
+            "Writes project version to <buildDir>/thrive/metadata/version.txt (useful for build automation)"
         ) {
             content = "${project.version}"
             target = new File(thriveDirectories.metadata, "version.txt")
@@ -212,12 +226,12 @@ class ThrivePlugin implements Plugin<Project> {
 
         project.build.dependsOn project.writeVersion
 
-        log.info("Creating 'writeCapabilities' task in project ${fullName(project)}")
-        project.tasks.create(
-            name: "writeCapabilities",
-            type: WriteCapabilities,
-            description: "Writes properties describing Thrive capabilities to appropriate place",
-            group: group
+        createTask(
+            project,
+            "writeCapabilities",
+            WriteCapabilities,
+            group,
+            "Writes properties describing Thrive capabilities to appropriate place"
         ) {
             capabilities = extension.capabilities
             outputFile = new File(thriveDirectories.resources, "META-INF/capabilities.properties")
@@ -228,15 +242,17 @@ class ThrivePlugin implements Plugin<Project> {
     }
 
     private void configureDockerTasks(Project project){
-        def group = "Thrive (Docker)"
-        //todo log
+        def group = "thrive (Docker)"
+
         def dockerfileLocation = new File(project.projectDir, "Dockerfile")
-        project.tasks.create(
-            name: "writeDockerfile",
-            type: WriteDockerfile,
-            group: group,
-            description: "Creates a Dockerfile suited for Thrive in main project directory (next to buildscript)"
-        ){
+
+        createTask(
+            project,
+            "writeDockerfile",
+            WriteDockerfile,
+            group,
+            "Creates a Dockerfile suited for Thrive in main project directory (next to buildscript)"
+        ) {
             target = dockerfileLocation
             dockerfile = extension.dockerfile
         }
@@ -249,6 +265,6 @@ class ThrivePlugin implements Plugin<Project> {
 
         //docker build ?
 
-        //docker compose todo add to extension
+        //docker compose todo add to extension; in a moment, apply and preconfigure package plugin
     }
 }
