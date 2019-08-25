@@ -1,5 +1,7 @@
 buildscript {
     repositories {
+        maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local/' }
+        maven { url 'http://oss.jfrog.org/artifactory/oss-release-local/' }
         maven {
             name "jitpack"
             url "https://jitpack.io"
@@ -29,6 +31,9 @@ group = 'com.github.thrive-framework'
 repositories {
     mavenCentral()
     gradlePluginPortal()
+    maven{
+        url "https://jitpack.io"
+    }
 }
 
 dependencies {
@@ -36,12 +41,13 @@ dependencies {
     api("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
     api("com.gorylenko.gradle-git-properties:com.gorylenko.gradle-git-properties.gradle.plugin:${gitInfoVersion}")
     api("io.spring.gradle:dependency-management-plugin:1.0.8.RELEASE") //todo version to ext
+    implementation "com.github.thrive-framework:thrive-plugin-common:0.1.0-SNAPSHOT"
 }
 
 gradlePlugin {
     plugins {
         simplePlugin {
-            //todo rename plugin ID and repo to thriving-service...
+            //todo rename plugin ID and repo to thriving-service...; or not
             id = 'com.github.thrive'
             implementationClass = 'com.github.thriveframework.plugin.ThrivePlugin'
         }
@@ -49,5 +55,5 @@ gradlePlugin {
 }
 wrapper {
     distributionType = Wrapper.DistributionType.ALL
-    gradleVersion = '5.2.1'
+    gradleVersion = '5.5'
 }

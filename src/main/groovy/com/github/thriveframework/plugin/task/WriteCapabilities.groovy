@@ -50,6 +50,6 @@ class WriteCapabilities extends WriteProperties {
         }
         this.properties = props
         log.info("Properties to be written: $props")
-        writeProperties()
+        writeProperties() //fixme this is annotated with TaskAction as well; I think it may be called twice
     }
 }

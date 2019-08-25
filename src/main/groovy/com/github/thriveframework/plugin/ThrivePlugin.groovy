@@ -4,6 +4,7 @@ import com.github.thriveframework.plugin.extension.ThriveExtension
 import com.github.thriveframework.plugin.task.Echo
 import com.github.thriveframework.plugin.task.WriteCapabilities
 import com.github.thriveframework.plugin.task.WriteDockerfile
+import com.github.thriveframework.plugin.utils.Gradle
 import com.github.thriveframework.plugin.utils.ThriveDirectories
 import com.gorylenko.GitPropertiesPlugin
 import groovy.util.logging.Slf4j
@@ -19,6 +20,10 @@ import org.springframework.boot.gradle.plugin.SpringBootPlugin
 import java.time.LocalDateTime
 import java.time.ZoneId
 
+import static com.github.thriveframework.plugin.task.VersionTasks.createPrintVersion
+import static com.github.thriveframework.plugin.task.VersionTasks.createWriteVersion
+import static com.github.thriveframework.plugin.utils.Projects.applyPlugin
+import static com.github.thriveframework.plugin.utils.Projects.createTask
 import static com.github.thriveframework.plugin.utils.Projects.fullName
 
 @Slf4j
@@ -30,7 +35,7 @@ class ThrivePlugin implements Plugin<Project> {
     @Override
     void apply(Project target) {
         thriveDirectories = new ThriveDirectories(target)
-        verifyGradleVersion()
+        Gradle.assertVersionAtLeast("5.0") //todo should we bump to 5.5?
 
         configureExtensions(target)
 
@@ -49,27 +54,11 @@ class ThrivePlugin implements Plugin<Project> {
 
             configureSpringBoot(project)
 
+            configureVersionTasks(project)
+
             configureProjectTasks(project)
 
             configureDockerTasks(project)
-        }
-    }
-
-    private void verifyGradleVersion() {
-        if (GradleVersion.current().compareTo(GradleVersion.version("5.0")) < 0) {
-            throw new GradleException("Thrive plugin requires Gradle 5.0 or later. The current version is "
-                + GradleVersion.current());
-        }
-    }
-
-    private void applyPluginIfNeeded(Project project, Class plugin){
-        String pluginClassName = plugin.canonicalName
-        log.info("Trying to apply plugin with implementation $pluginClassName to project ${fullName(project)}")
-        if (!project.plugins.findPlugin(plugin)) {
-            log.info("Applying $pluginClassName")
-            project.apply plugin: plugin
-        } else {
-            log.info("$pluginClassName already applied")
         }
     }
 
@@ -79,7 +68,7 @@ class ThrivePlugin implements Plugin<Project> {
     }
 
     private void configureJavaLibrary(Project project){
-        applyPluginIfNeeded(project, JavaLibraryPlugin)
+        applyPlugin(project, JavaLibraryPlugin)
     }
 
     private void configureRepositories(Project project){
@@ -101,7 +90,7 @@ class ThrivePlugin implements Plugin<Project> {
     private void configureSpringBoot(Project project){
         if (extension.isRunnableProject.get()) {
             log.info "Configuring project ${fullName(project)} as runnable service"
-            applyPluginIfNeeded(project, SpringBootPlugin)
+            applyPlugin(project, SpringBootPlugin)
 
             //fixme main class for booJar needs to ne given explicitly;
             // it can be resolved automatically for sure, Spring Cloud replaces Spring Boot
@@ -149,7 +138,7 @@ class ThrivePlugin implements Plugin<Project> {
     }
 
     private void configureGitProperties(Project project){
-        applyPluginIfNeeded(project, GitPropertiesPlugin)
+        applyPlugin(project, GitPropertiesPlugin)
     }
 
     private void configureDirs(Project project){
@@ -169,7 +158,7 @@ class ThrivePlugin implements Plugin<Project> {
 
     private void configureDependencies(Project project){
         if (extension.libraries.applyManagementPlugin.get()) {
-            applyPluginIfNeeded(project, DependencyManagementPlugin)
+            applyPlugin(project, DependencyManagementPlugin)
         }
 
         if (extension.libraries.useThriveBom.get()) {
@@ -197,32 +186,13 @@ class ThrivePlugin implements Plugin<Project> {
         }
     }
 
-    private <T extends Task> T createTask(Project project, String name, Class<T> type, String group, String desc, Closure config){
-        log.info("Creating '$name' task in project ${fullName(project)}")
-        project.tasks.create(
-            [
-                name: name,
-                type: type,
-                description: desc,
-                group: group
-            ],
-            config
-        )
+    private void configureVersionTasks(Project project){
+        createWriteVersion(project)
+        createPrintVersion(project)
     }
 
     private void configureProjectTasks(Project project){
         def group = "thrive (common)"
-
-        createTask(
-            project,
-            "writeVersion",
-            Echo,
-            group,
-            "Writes project version to <buildDir>/thrive/metadata/version.txt (useful for build automation)"
-        ) {
-            content = "${project.version}"
-            target = new File(thriveDirectories.metadata, "version.txt")
-        }
 
         project.build.dependsOn project.writeVersion
 
