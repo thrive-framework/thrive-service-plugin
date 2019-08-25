@@ -22,13 +22,16 @@ plugins {
 apply plugin: "com.github.thrive-versioning"
 
 ext {
-    springBootVersion  = '2.1.6.RELEASE'
-    gitInfoVersion     = '2.0.0'
+    springBootVersion = '2.1.6.RELEASE'
+    gitInfoVersion = '2.0.0'
+    dependencyManagementVersion = '1.0.8.RELEASE'
+    commonVersion = '0.1.0-SNAPSHOT'
 }
 
 group = 'com.github.thrive-framework'
 
 repositories {
+    mavenLocal()
     mavenCentral()
     gradlePluginPortal()
     maven{
@@ -37,17 +40,15 @@ repositories {
 }
 
 dependencies {
-    //todo move buildscript versions to BOM (?)
     api("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
     api("com.gorylenko.gradle-git-properties:com.gorylenko.gradle-git-properties.gradle.plugin:${gitInfoVersion}")
-    api("io.spring.gradle:dependency-management-plugin:1.0.8.RELEASE") //todo version to ext
-    implementation "com.github.thrive-framework:thrive-plugin-common:0.1.0-SNAPSHOT"
+    api("io.spring.gradle:dependency-management-plugin:${dependencyManagementVersion}")
+    implementation "com.github.thrive-framework:thrive-plugin-common:${commonVersion}"
 }
 
 gradlePlugin {
     plugins {
         simplePlugin {
-            //todo rename plugin ID and repo to thriving-service...; or not
             id = 'com.github.thrive'
             implementationClass = 'com.github.thriveframework.plugin.ThrivePlugin'
         }
