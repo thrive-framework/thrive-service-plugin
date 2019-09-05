@@ -1,10 +1,8 @@
 package com.github.thriveframework.plugin
 
 import com.github.thriveframework.plugin.extension.ThriveExtension
-import com.github.thriveframework.plugin.task.Echo
 import com.github.thriveframework.plugin.task.WriteCapabilities
 import com.github.thriveframework.plugin.task.WriteDockerfile
-import com.github.thriveframework.plugin.utils.Gradle
 import com.github.thriveframework.plugin.utils.ThriveDirectories
 import com.gorylenko.GitPropertiesPlugin
 import groovy.util.logging.Slf4j
@@ -20,11 +18,11 @@ import org.springframework.boot.gradle.plugin.SpringBootPlugin
 import java.time.LocalDateTime
 import java.time.ZoneId
 
-import static com.github.thriveframework.plugin.task.VersionTasks.createPrintVersion
-import static com.github.thriveframework.plugin.task.VersionTasks.createWriteVersion
-import static com.github.thriveframework.plugin.utils.Projects.applyPlugin
-import static com.github.thriveframework.plugin.utils.Projects.createTask
-import static com.github.thriveframework.plugin.utils.Projects.fullName
+import static com.github.thriveframework.utils.plugin.task.VersionTasks.createPrintVersion
+import static com.github.thriveframework.utils.plugin.task.VersionTasks.createWriteVersion
+import static com.github.thriveframework.utils.plugin.Projects.createTask
+import static com.github.thriveframework.utils.plugin.Projects.applyPlugin
+import static com.github.thriveframework.utils.plugin.Projects.fullName
 
 @Slf4j
 class ThrivePlugin implements Plugin<Project> {

@@ -25,7 +25,7 @@ ext {
     springBootVersion = '2.1.6.RELEASE'
     gitInfoVersion = '2.0.0'
     dependencyManagementVersion = '1.0.8.RELEASE'
-    commonVersion = '0.1.0-SNAPSHOT'
+    commonVersion = '0.1.0'
 }
 
 group = 'com.github.thrive-framework'

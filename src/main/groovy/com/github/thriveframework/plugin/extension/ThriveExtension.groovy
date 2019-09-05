@@ -13,9 +13,9 @@ class ThriveExtension {
     final Property<Boolean> isRunnableProject
 
     ThriveExtension(Project project){
-        capabilities = project.objects.newInstance(Capabilities)
-        libraries = project.objects.newInstance(Libraries)
-        dockerfile = project.objects.newInstance(Dockerfile, project)
+        capabilities = this.extensions.create("capabilities", Capabilities)
+        libraries = this.extensions.create("libraries", Libraries)
+        dockerfile = this.extensions.create("dockerfile", Dockerfile, project)
 
         mainClassName = project.objects.property(String)
 
@@ -24,7 +24,7 @@ class ThriveExtension {
     }
 
     private void initDefaults(){
-        service()
+        isRunnableProject.convention(true)
     }
 
     void service(boolean is = true){
@@ -33,17 +33,5 @@ class ThriveExtension {
 
     void library(boolean is = true){
         service(!is)
-    }
-
-    void libraries(Closure c){
-        this.libraries.with c
-    }
-
-    void capabilities(Closure c){
-        this.capabilities.with c
-    }
-
-    void dockerfile(Closure c){
-        this.dockerfile.with c
     }
 }

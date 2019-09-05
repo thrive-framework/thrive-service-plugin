@@ -49,10 +49,4 @@ COPY ./build/libs/${config.name.get()}-${config.version.get()}.jar ./${config.na
 """ //todo: JAVA_OPTS
         })
     }
-
-    //todo I think this can be safely removed
-    @TaskAction
-    void run(){
-        super.run()
-    }
 }
