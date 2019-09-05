@@ -10,7 +10,6 @@ import org.gradle.api.tasks.WriteProperties
 
 import javax.inject.Inject
 
-import static com.github.thriveframework.plugin.utils.Projects.fullName
 
 @CacheableTask
 @Slf4j

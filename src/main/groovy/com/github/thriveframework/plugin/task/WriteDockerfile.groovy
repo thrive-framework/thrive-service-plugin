@@ -1,6 +1,7 @@
 package com.github.thriveframework.plugin.task
 
 import com.github.thriveframework.plugin.extension.Dockerfile
+import com.github.thriveframework.utils.plugin.task.Echo
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
