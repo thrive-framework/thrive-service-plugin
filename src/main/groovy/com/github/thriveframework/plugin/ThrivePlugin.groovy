@@ -4,6 +4,7 @@ import com.github.thriveframework.plugin.extension.ThriveExtension
 import com.github.thriveframework.plugin.task.WriteCapabilities
 import com.github.thriveframework.plugin.task.WriteDockerfile
 import com.github.thriveframework.plugin.utils.ThriveDirectories
+import com.github.thriveframework.utils.plugin.Gradle
 import com.gorylenko.GitPropertiesPlugin
 import groovy.util.logging.Slf4j
 import io.spring.gradle.dependencymanagement.DependencyManagementPlugin
