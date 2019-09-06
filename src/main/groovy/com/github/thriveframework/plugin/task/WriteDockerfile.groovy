@@ -1,5 +1,6 @@
 package com.github.thriveframework.plugin.task
 
+import com.github.thriveframework.plugin.extension.DockerImage
 import com.github.thriveframework.plugin.extension.Dockerfile
 import com.github.thriveframework.utils.plugin.task.Echo
 import org.gradle.api.model.ObjectFactory
@@ -12,11 +13,13 @@ import javax.inject.Inject
 
 @CacheableTask
 class WriteDockerfile extends Echo {
+    final Property<DockerImage> dockerImage
     final Property<Dockerfile> dockerfile
 
     @Inject
     WriteDockerfile(ObjectFactory objects) {
         super(objects)
+        dockerImage = objects.property(DockerImage)
         dockerfile = objects.property(Dockerfile)
         content.set(prepareContent())
     }
@@ -31,23 +34,27 @@ class WriteDockerfile extends Echo {
          */
 
         dockerfile.map({config ->
-            """FROM ${config.baseImage.get()}
-LABEL name="${config.name.get()}"
+            dockerImage.map { image ->
+                """FROM ${config.baseImage.get()}
+LABEL name="${image.name.get()}"
 
 WORKDIR ${config.workdir.get()}
 
-${config.exposes.get().collect {
-    "EXPOSE $it"
-}.join("\n")}
+${
+    config.exposes.get().collect {
+        "EXPOSE $it"
+    }.join("\n")
+}
 
 ${config.maintainer.isPresent() ? "LABEL maintainer=\"${config.maintainer.get()}\"" : ""}
 LABEL version="${config.version.get()}"
-${config.labels.get().isEmpty() ? "" : "LABEL ${config.labels.get().collect {k, v -> "$k=\"$v\""}.sort().join(",")}"}
+${config.labels.get().isEmpty() ? "" : "LABEL ${config.labels.get().collect { k, v -> "$k=\"$v\"" }.sort().join(",")}"}
 
-ENTRYPOINT ["java","-jar","${config.workdir.get()}/${config.name.get()}-${config.version.get()}-boot.jar"]
+ENTRYPOINT ["java","-jar","${config.workdir.get()}/${image.name.get()}-${config.artifactVersion.get()}-boot.jar"]
 
-COPY ./build/libs/${config.name.get()}-${config.version.get()}.jar ./${config.name.get()}-${config.version.get()}-boot.jar
+COPY ./build/libs/${image.name.get()}-${config.version.get()}.jar ./${image.name.get()}-${config.artifactVersion.get()}-boot.jar
 """ //todo: JAVA_OPTS
+            }.get()
         })
     }
 }

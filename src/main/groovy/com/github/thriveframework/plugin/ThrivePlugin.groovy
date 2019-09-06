@@ -215,24 +215,29 @@ class ThrivePlugin implements Plugin<Project> {
 
         def dockerfileLocation = new File(project.projectDir, "Dockerfile")
 
-        createTask(
-            project,
-            "writeDockerfile",
-            WriteDockerfile,
-            group,
-            "Creates a Dockerfile suited for Thrive in main project directory (next to buildscript)"
-        ) {
-            target = dockerfileLocation
-            dockerfile = extension.dockerfile
+        project.afterEvaluate {
+            if (extension.isRunnableProject.get()) {
+                createTask(
+                    project,
+                    "writeDockerfile",
+                    WriteDockerfile,
+                    group,
+                    "Creates a Dockerfile suited for Thrive in main project directory (next to buildscript)"
+                ) {
+                    target = dockerfileLocation
+                    dockerfile = extension.dockerfile
+                    dockerImage = extension.dockerImage
+                }
+
+                if (project.ext.dockerized)
+                    project.build.dependsOn project.writeDockerfile
+                project.clean.doLast {
+                    dockerfileLocation.delete()
+                }
+            }
         }
 
-        if (project.ext.dockerized)
-            project.build.dependsOn project.writeDockerfile
-        project.clean.doLast {
-            new File(project.projectDir, "Dockerfile").delete()
-        }
-
-        //docker build ?
+        //docker build ; no more '?', its a definite "yep"
 
         //docker compose todo add to extension; in a moment, apply and preconfigure package plugin
     }

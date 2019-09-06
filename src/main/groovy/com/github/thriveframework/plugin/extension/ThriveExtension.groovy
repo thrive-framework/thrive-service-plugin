@@ -6,6 +6,7 @@ import org.gradle.api.provider.Property
 class ThriveExtension {
     final Capabilities capabilities
     final Libraries libraries
+    final DockerImage dockerImage
     final Dockerfile dockerfile
 
     final Property<String> mainClassName
@@ -15,6 +16,7 @@ class ThriveExtension {
     ThriveExtension(Project project){
         capabilities = this.extensions.create("capabilities", Capabilities)
         libraries = this.extensions.create("libraries", Libraries)
+        dockerImage = this.extensions.create("dockerImage", DockerImage, project)
         dockerfile = this.extensions.create("dockerfile", Dockerfile, project)
 
         mainClassName = project.objects.property(String)
